@@ -1,0 +1,13 @@
+[package]
+name = "agent-adapter-config"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+toml = "0.8"
+thiserror = { workspace = true }
+camino = { workspace = true }
+anyhow = "1.0"

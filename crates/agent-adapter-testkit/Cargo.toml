@@ -1,0 +1,23 @@
+[package]
+name = "agent-adapter-testkit"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+agent-adapter-core = { path = "../agent-adapter-core" }
+agent-adapter-transports = { path = "../agent-adapter-transports" }
+agent-adapter-providers = { path = "../agent-adapter-providers" }
+agent-adapter-config = { path = "../agent-adapter-config" }
+async-trait = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
+tokio = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+anyhow = "1.0"
+tempfile = "3.10"
+toml = "0.8"
+walkdir = "2.4"

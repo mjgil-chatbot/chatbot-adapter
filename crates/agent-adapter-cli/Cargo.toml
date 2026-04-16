@@ -1,0 +1,25 @@
+[package]
+name = "agent-adapter-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+agent-adapter-core = { path = "../agent-adapter-core" }
+agent-adapter-config = { path = "../agent-adapter-config" }
+agent-adapter-transports = { path = "../agent-adapter-transports" }
+agent-adapter-providers = { path = "../agent-adapter-providers" }
+agent-adapter-router = { path = "../agent-adapter-router" }
+agent-adapter-testkit = { path = "../agent-adapter-testkit" }
+async-trait = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
+clap = { version = "4.5", features = ["derive", "env"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { workspace = true }
+anyhow = "1.0"
+dirs-next = "2.0"

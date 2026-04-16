@@ -1,0 +1,18 @@
+[package]
+name = "agent-adapter-transports"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+
+[dependencies]
+agent-adapter-core = { path = "../agent-adapter-core" }
+tokio = { workspace = true }
+tokio-stream = { workspace = true }
+tokio-util = { workspace = true }
+futures-core = { workspace = true }
+futures-util = { workspace = true }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+portable-pty = "0.9"

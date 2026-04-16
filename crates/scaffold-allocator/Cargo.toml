@@ -1,0 +1,8 @@
+[package]
+name = "scaffold-allocator"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+cap.workspace = true
