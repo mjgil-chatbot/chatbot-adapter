@@ -2,7 +2,11 @@
 
 use clap::Parser;
 use std::path::PathBuf;
+use agent_adapter_core::ApprovalPolicy;
+use agent_adapter_core::ChatRequest;
+use agent_adapter_core::ExternalSessionRef;
 use agent_adapter_core::ProviderId;
+use agent_adapter_core::ResumeMode;
 mod acceptance;
 mod doctor;
 mod health;
@@ -107,6 +111,46 @@ pub fn parse_provider(s: &str) -> ProviderId {
         "claw" => ProviderId::Claw,
         other => ProviderId::Custom(other.to_string()),
     }
+}
+/// Create a ChatRequest from run arguments
+pub(crate) fn create_request(args: &RunArgs) -> anyhow::Result<ChatRequest> {
+    let provider = parse_provider(&args.provider);
+    let provider_for_request = provider.clone();
+    let policy = if args.safe {
+        ApprovalPolicy::Safe
+    } else {
+        ApprovalPolicy::DangerousDefault
+    };
+
+    let mut request =
+        ChatRequest::new(&args.prompt, PathBuf::from(&args.cwd), provider_for_request);
+    request.timeout_ms = args.timeout;
+    request.model = args.model.clone();
+    request.approval_policy = policy;
+    if let Some(system_prompt) = args.system_prompt.as_ref() {
+        request.extra = serde_json::json!({
+            "system_prompt": system_prompt,
+        });
+    }
+
+    // Handle sandbox directories (runsc workspace includes)
+    for dir in &args.sandbox_dirs {
+        request.files.push(PathBuf::from(dir));
+    }
+
+    // Handle session resume
+    if args.resume {
+        if let Some(session_id) = &args.session_id {
+            request.resume = ResumeMode::External(ExternalSessionRef {
+                id: session_id.clone(),
+                provider: provider.clone(),
+            });
+        } else {
+            request.resume = ResumeMode::LastInWorkspace;
+        }
+    }
+
+    Ok(request)
 }
 #[derive(Debug)]
 struct CliExitError {
