@@ -73,6 +73,27 @@ pub struct ExternalSessionRef {
     pub provider: ProviderId,
     pub id: String,
 }
+/// Resume mode for continuing sessions.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(tag = "mode", rename_all = "snake_case")]
+pub enum ResumeMode {
+    #[default]
+    None,
+    ProviderDefault,
+    External(ExternalSessionRef),
+    LastInWorkspace,
+}
+/// Sandbox mode for workspace access.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum SandboxMode {
+    ReadOnly,
+    #[default]
+    WorkspaceWrite,
+    IsolatedWorktree,
+    Container,
+    DangerFullAccess,
+}
 /// Workspace reference for lifecycle events.
 ///
 /// Captures the workspace identity including the path and access mode.
