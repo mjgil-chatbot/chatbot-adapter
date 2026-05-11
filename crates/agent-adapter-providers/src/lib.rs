@@ -7,3 +7,4 @@ pub mod command;
 pub mod config;
 pub mod forge_adapter;
 pub mod gemini_adapter;
+pub mod healthcheck;
