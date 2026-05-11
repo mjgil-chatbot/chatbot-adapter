@@ -2,11 +2,14 @@
 
 use clap::Parser;
 use std::path::PathBuf;
+use agent_adapter_core::AgentEvent;
 use agent_adapter_core::ApprovalPolicy;
 use agent_adapter_core::ChatRequest;
+use agent_adapter_core::EventStream;
 use agent_adapter_core::ExternalSessionRef;
 use agent_adapter_core::ProviderId;
 use agent_adapter_core::ResumeMode;
+use agent_adapter_core::Role;
 mod acceptance;
 mod doctor;
 mod health;
@@ -193,5 +196,44 @@ fn terminal_failure_message(
     }
 
     format!("Provider exited with code {exit_code}")
+}
+/// Print events from a stream and track terminal state.
+/// Returns Ok(()) if run completed successfully, Err with exit code otherwise.
+pub async fn print_events(stream: EventStream) -> anyhow::Result<()> {
+    use futures_util::StreamExt;
+
+    let mut stream = stream;
+    let mut assistant_text = String::new();
+
+    while let Some(result) = stream.next().await {
+        match result {
+            Ok(event) => {
+                println!("{}", serde_json::to_string(&event)?);
+                if let AgentEvent::TextDelta {
+                    role: Role::Assistant,
+                    text,
+                } = &event
+                {
+                    assistant_text.push_str(text);
+                }
+                if event.is_terminal() {
+                    if let AgentEvent::RunFailed { code, message } = event {
+                        let exit_code = code.unwrap_or(1);
+                        let message =
+                            terminal_failure_message(&message, &assistant_text, exit_code);
+                        return Err(CliExitError::new(exit_code, message).into());
+                    }
+                    return Ok(());
+                }
+            }
+            Err(e) => {
+                // Stream error - propagate with exit code info
+                eprintln!("Error: {}", e);
+                return Err(e.into());
+            }
+        }
+    }
+
+    Err(CliExitError::new(1, "Stream ended without terminal event").into())
 }
 fn main() {}
