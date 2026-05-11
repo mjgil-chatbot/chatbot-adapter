@@ -4,5 +4,6 @@
 //! used across all transports and providers.
 
 mod audit;
+mod capabilities;
 mod events;
 pub mod types;
