@@ -6,6 +6,7 @@
 use agent_adapter_config::{ProviderConfig, ProviderKind};
 use agent_adapter_core::{ApprovalPolicy, ChatRequest, ProviderId, ResumeMode};
 use std::time::Duration;
+
 /// Command spec returned by command builders.
 ///
 /// This struct represents a fully populated command ready for execution
@@ -43,6 +44,7 @@ pub struct CommandSpec {
     /// Provider-specific extras (arbitrary key-value pairs).
     pub extras: std::collections::HashMap<String, serde_json::Value>,
 }
+
 /// Cleanup handle for deferred cleanup of temp files/processes.
 #[derive(Debug, Clone)]
 pub struct CleanupHandle {
@@ -53,6 +55,7 @@ pub struct CleanupHandle {
     /// Process ID to kill (if applicable).
     pub pid: Option<u32>,
 }
+
 /// Kind of cleanup.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CleanupKind {
@@ -65,6 +68,7 @@ pub enum CleanupKind {
     /// Remove a temporary workspace.
     TempWorkspace,
 }
+
 impl Default for CommandSpec {
     fn default() -> Self {
         Self {
@@ -86,6 +90,7 @@ impl Default for CommandSpec {
         }
     }
 }
+
 /// Process group mode for tree cleanup on cancellation.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ProcessGroupMode {
@@ -94,6 +99,7 @@ pub enum ProcessGroupMode {
     /// Only kill the main process.
     MainProcessOnly,
 }
+
 /// Transport kind for command execution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TransportKind {
@@ -106,6 +112,7 @@ pub enum TransportKind {
     /// PTY fallback for TUI-based providers.
     PtyFallback,
 }
+
 /// Convert ProviderKind to TransportKind.
 pub fn provider_kind_to_transport(kind: &ProviderKind) -> TransportKind {
     match kind {
@@ -116,12 +123,14 @@ pub fn provider_kind_to_transport(kind: &ProviderKind) -> TransportKind {
         ProviderKind::Custom => TransportKind::JsonlCommand,
     }
 }
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum StdinMode {
     None,
     Prompt,
     File,
 }
+
 /// Build a command for a specific provider and policy.
 pub fn build_command(
     provider: ProviderId,
@@ -142,16 +151,20 @@ pub fn build_command(
         ProviderId::Custom(ref name) => custom::build(name, policy, config, request),
     }
 }
+
 #[derive(Debug)]
 pub struct BuildError {
     pub message: String,
 }
+
 impl std::fmt::Display for BuildError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.message)
     }
 }
+
 impl std::error::Error for BuildError {}
+
 mod codex {
     use super::*;
 
@@ -217,6 +230,7 @@ mod codex {
         })
     }
 }
+
 mod claude {
     use super::*;
 
@@ -318,6 +332,7 @@ mod claude {
         })
     }
 }
+
 mod gemini {
     use super::*;
 
@@ -378,6 +393,7 @@ mod gemini {
         })
     }
 }
+
 mod kimi {
     use super::*;
 
@@ -444,6 +460,7 @@ mod kimi {
         })
     }
 }
+
 mod opencode {
     use super::*;
 
@@ -509,6 +526,7 @@ mod opencode {
         })
     }
 }
+
 mod hermes {
     use super::*;
 
@@ -582,6 +600,7 @@ mod hermes {
         })
     }
 }
+
 mod forge {
     use super::*;
 
@@ -646,6 +665,7 @@ mod forge {
         })
     }
 }
+
 mod claw {
     use super::*;
 
@@ -710,4 +730,8 @@ mod claw {
         })
     }
 }
+
 mod custom;
+
+#[cfg(test)]
+mod tests;
