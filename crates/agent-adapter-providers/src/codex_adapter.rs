@@ -1,7 +1,25 @@
 //! Codex provider adapter.
 
 use async_trait::async_trait;
+use agent_adapter_core::AdapterCapabilities;
 use agent_adapter_core::ChatRequest;
+use crate::config::ProviderConfig;
+pub struct CodexAdapter {
+    config: ProviderConfig,
+    capabilities: AdapterCapabilities,
+}
+impl CodexAdapter {
+    pub fn new(config: ProviderConfig) -> Self {
+        let capabilities = AdapterCapabilities {
+            sessions: true,
+            tools: true,
+            ..Default::default()
+        };
+        Self {
+            config,
+            capabilities,
+        }
+    }}
 fn build_resume_args(
     request: &ChatRequest,
     session_id: Option<&str>,
