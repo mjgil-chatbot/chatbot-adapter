@@ -2,7 +2,9 @@
 
 use clap::Parser;
 use std::path::PathBuf;
+use agent_adapter_core::ProviderId;
 mod acceptance;
+mod doctor;
 mod health;
 mod providers;
 #[derive(Parser, Debug)]
@@ -90,6 +92,21 @@ pub(crate) struct DoctorArgs {
 pub(crate) struct ProvidersArgs {
     #[arg(long, help = "Output as JSON")]
     json: bool,
+}
+/// Parse provider string into ProviderId
+pub fn parse_provider(s: &str) -> ProviderId {
+    match s.to_lowercase().as_str() {
+        "codex" => ProviderId::Codex,
+        "claude" => ProviderId::Claude,
+        "minimax" => ProviderId::MiniMax,
+        "gemini" => ProviderId::Gemini,
+        "kimi" => ProviderId::Kimi,
+        "opencode" => ProviderId::OpenCode,
+        "hermes" => ProviderId::Hermes,
+        "forge" => ProviderId::Forge,
+        "claw" => ProviderId::Claw,
+        other => ProviderId::Custom(other.to_string()),
+    }
 }
 #[derive(Debug)]
 struct CliExitError {

@@ -1,7 +1,30 @@
 //! Providers command implementation.
 
+use agent_adapter_core::AdapterCapabilities;
 use anyhow::Context;
 use serde::Serialize;
+#[derive(Serialize)]
+struct ProviderInfo {
+    name: String,
+    display_name: String,
+    docs_path: Option<String>,
+    installed: bool,
+    version: Option<String>,
+    safe_mode_supported: bool,
+    unsafe_mode_supported: bool,
+    requires_explicit_unsafe_args: bool,
+    supported_transports: Vec<String>,
+    capabilities: AdapterCapabilities,
+    health_status: String,
+    health_detail: String,
+}
+#[derive(Serialize)]
+struct ProvidersOutput {
+    providers: Vec<ProviderInfo>,
+    total: usize,
+    builtin_count: usize,
+    custom_count: usize,
+}
 /// Get display name for a provider from registry metadata.
 fn provider_metadata_display(name: &str) -> String {
     let metadata = [
