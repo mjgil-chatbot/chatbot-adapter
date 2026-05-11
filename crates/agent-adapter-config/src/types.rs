@@ -25,6 +25,23 @@ pub struct ProviderConfig {
     #[serde(default)]
     pub schema_version: Option<i32>,
 }
+impl Default for ProviderConfig {
+    fn default() -> Self {
+        Self {
+            name: String::new(),
+            kind: ProviderKind::JsonlCommand,
+            exe: String::new(),
+            args: Vec::new(),
+            prompt_mode: PromptMode::Arg,
+            mapper: String::new(),
+            unsafe_args: Vec::new(),
+            safe_args: Vec::new(),
+            env_allowlist: Vec::new(),
+            cwd_behavior: CwdBehavior::UseProvided,
+            schema_version: None,
+        }
+    }
+}
 #[derive(Debug, Clone, Serialize, Deserialize, Default, PartialEq)]
 #[serde(rename_all = "snake_case")]
 pub enum ProviderKind {
