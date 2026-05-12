@@ -20,3 +20,6 @@ pub use gemini_adapter::GeminiAdapter;
 pub use healthcheck::{check_auth_status, check_binary, full_healthcheck, get_install_hint};
 pub use hermes_adapter::HermesAdapter;
 pub use kimi_adapter::KimiAdapter;
+pub use mappers::{
+    ClaudeMapper, ClawMapper, CodexMapper, HermesMapper, JsonlMapper, PlainTextMapper,
+};
