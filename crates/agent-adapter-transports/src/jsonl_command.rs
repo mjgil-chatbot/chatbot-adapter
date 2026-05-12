@@ -174,3 +174,5 @@ fn provider_supports_context_dirs(provider: &ProviderId) -> bool {
         ProviderId::Claude | ProviderId::MiniMax | ProviderId::Codex | ProviderId::Kimi
     )
 }
+#[cfg(test)]
+mod tests;
