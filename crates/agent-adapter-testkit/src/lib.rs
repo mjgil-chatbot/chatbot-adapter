@@ -17,3 +17,4 @@ pub use fixtures::*;
 pub use legacy_policy_lint::*;
 pub use real_provider_gates::*;
 pub use schema_lint::*;
+pub use status_validation::*;
