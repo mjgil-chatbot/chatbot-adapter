@@ -6,6 +6,7 @@ pub mod docs_lint;
 pub mod fake;
 pub mod fixtures;
 pub mod legacy_policy_lint;
+pub mod real_provider_gates;
 pub use contract::*;
 pub use design_traceability::*;
 pub use docs_lint::*;
