@@ -3,6 +3,7 @@
 //! This transport spawns a command and parses JSONL output from stdout.
 
 mod codex_runtime;
+mod normalized_tool_events;
 use std::process::Stdio;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::process::Command;
