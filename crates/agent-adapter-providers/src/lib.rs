@@ -5,6 +5,7 @@ pub mod claw_adapter;
 pub mod codex_adapter;
 pub mod command;
 pub mod config;
+pub mod factories;
 pub mod forge_adapter;
 pub mod gemini_adapter;
 pub mod healthcheck;
@@ -12,11 +13,14 @@ pub mod hermes_adapter;
 pub mod kimi_adapter;
 pub mod mappers;
 pub mod opencode_adapter;
+pub mod registry;
 pub mod traits;
+
 pub use claude_adapter::ClaudeAdapter;
 pub use claw_adapter::ClawAdapter;
 pub use codex_adapter::CodexAdapter;
 pub use command::{build_command, BuildError, CommandSpec};
+pub use factories::*;
 pub use forge_adapter::ForgeAdapter;
 pub use gemini_adapter::GeminiAdapter;
 pub use healthcheck::{check_auth_status, check_binary, full_healthcheck, get_install_hint};
@@ -26,3 +30,5 @@ pub use mappers::{
     ClaudeMapper, ClawMapper, CodexMapper, HermesMapper, JsonlMapper, PlainTextMapper,
 };
 pub use opencode_adapter::OpenCodeAdapter;
+pub use registry::*;
+pub use traits::*;
