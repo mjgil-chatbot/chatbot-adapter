@@ -11,6 +11,8 @@ pub mod healthcheck;
 pub mod hermes_adapter;
 pub mod kimi_adapter;
 pub mod mappers;
+pub mod opencode_adapter;
+pub mod traits;
 pub use claude_adapter::ClaudeAdapter;
 pub use claw_adapter::ClawAdapter;
 pub use codex_adapter::CodexAdapter;
@@ -23,3 +25,4 @@ pub use kimi_adapter::KimiAdapter;
 pub use mappers::{
     ClaudeMapper, ClawMapper, CodexMapper, HermesMapper, JsonlMapper, PlainTextMapper,
 };
+pub use opencode_adapter::OpenCodeAdapter;
