@@ -596,3 +596,140 @@ fn check_health_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError>
 
     errors
 }
+/// Validate a specific design claim has evidence.
+pub fn validate_claim(claim: &str, root_dir: &Path) -> TraceabilityResult {
+    let claim_lower = claim.to_lowercase();
+
+    // Map claims to their expected locations with required symbols
+    let claim_mappings: Vec<(&str, &str, Vec<&str>)> = vec![
+        (
+            "chatrequest",
+            "crates/agent-adapter-core/src/request.rs",
+            vec!["pub struct ChatRequest"],
+        ),
+        (
+            "agentevent",
+            "crates/agent-adapter-core/src/events.rs",
+            vec!["pub enum AgentEvent"],
+        ),
+        (
+            "agentadapter",
+            "crates/agent-adapter-core/src/adapter.rs",
+            vec!["pub trait AgentAdapter"],
+        ),
+        (
+            "acp",
+            "crates/agent-adapter-transports/src/acp_stdio.rs",
+            vec!["AcpStdioTransport"],
+        ),
+        (
+            "jsonl",
+            "crates/agent-adapter-transports/src/jsonl_command.rs",
+            vec!["JsonlCommandTransport"],
+        ),
+        (
+            "one-shot",
+            "crates/agent-adapter-transports/src/oneshot_command.rs",
+            vec!["OneShotCommandTransport"],
+        ),
+        (
+            "pty",
+            "crates/agent-adapter-transports/src/pty_fallback.rs",
+            vec!["PtyFallbackTransport"],
+        ),
+        (
+            "codex",
+            "crates/agent-adapter-providers/src/codex_adapter.rs",
+            vec!["CodexAdapter"],
+        ),
+        (
+            "claude",
+            "crates/agent-adapter-providers/src/claude_adapter.rs",
+            vec!["ClaudeAdapter"],
+        ),
+        (
+            "gemini",
+            "crates/agent-adapter-providers/src/gemini_adapter.rs",
+            vec!["GeminiAdapter"],
+        ),
+        (
+            "kimi",
+            "crates/agent-adapter-providers/src/kimi_adapter.rs",
+            vec!["KimiAdapter"],
+        ),
+        (
+            "opencode",
+            "crates/agent-adapter-providers/src/opencode_adapter.rs",
+            vec!["OpenCodeAdapter"],
+        ),
+        (
+            "hermes",
+            "crates/agent-adapter-providers/src/hermes_adapter.rs",
+            vec!["HermesAdapter"],
+        ),
+        (
+            "forge",
+            "crates/agent-adapter-providers/src/forge_adapter.rs",
+            vec!["ForgeAdapter"],
+        ),
+        (
+            "claw",
+            "crates/agent-adapter-providers/src/claw_adapter.rs",
+            vec!["ClawAdapter"],
+        ),
+        (
+            "router",
+            "crates/agent-adapter-router/src/router.rs",
+            vec!["AgentRouter"],
+        ),
+        (
+            "config",
+            "crates/agent-adapter-config/src/loader.rs",
+            vec!["ConfigLoader"],
+        ),
+        (
+            "dangerousdefault",
+            "crates/agent-adapter-core/src/request.rs",
+            vec!["ApprovalPolicy"],
+        ),
+        (
+            "approvalpolicy",
+            "crates/agent-adapter-core/src/request.rs",
+            vec!["ApprovalPolicy"],
+        ),
+        (
+            "healthcheck",
+            "crates/agent-adapter-providers/src/healthcheck.rs",
+            vec!["check_binary"],
+        ),
+        (
+            "workspace",
+            "crates/agent-adapter-core/src/types.rs",
+            vec!["WorkspaceRef"],
+        ),
+    ];
+
+    for (keyword, expected_path, required_symbols) in claim_mappings {
+        if claim_lower.contains(keyword) {
+            let full_path = root_dir.join(expected_path);
+            if !full_path.exists() {
+                return TraceabilityResult::failure(vec![TraceabilityError {
+                    claim: claim.to_string(),
+                    error: format!("Expected file not found: {}", expected_path),
+                }]);
+            }
+            // Check for required symbols
+            let content = std::fs::read_to_string(&full_path).unwrap_or_default();
+            for symbol in required_symbols {
+                if !content.contains(symbol) {
+                    return TraceabilityResult::failure(vec![TraceabilityError {
+                        claim: format!("Symbol '{}' not found in {}", symbol, expected_path),
+                        error: format!("File exists but required symbol '{}' not found", symbol),
+                    }]);
+                }
+            }
+        }
+    }
+
+    TraceabilityResult::success()
+}

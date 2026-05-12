@@ -339,3 +339,44 @@ fn collect_markdown_files(dir: &Path) -> Vec<PathBuf> {
 
     files
 }
+/// Lint result for a single file.
+pub fn lint_file(path: &Path) -> DocsLintResult {
+    let mut errors = Vec::new();
+
+    if !path.exists() {
+        return DocsLintResult::failure(vec![DocsLintError {
+            file: path.to_path_buf(),
+            line: None,
+            error: "File does not exist".to_string(),
+        }]);
+    }
+
+    let content = match fs::read_to_string(path) {
+        Ok(c) => c,
+        Err(e) => {
+            return DocsLintResult::failure(vec![DocsLintError {
+                file: path.to_path_buf(),
+                line: None,
+                error: format!("Could not read file: {}", e),
+            }])
+        }
+    };
+
+    // Check for common issues
+    for (line_num, line) in content.lines().enumerate() {
+        // Check for TODO that should be implemented
+        if line.contains("TODO:") || line.contains("FIXME:") {
+            errors.push(DocsLintError {
+                file: path.to_path_buf(),
+                line: Some(line_num + 1),
+                error: "Found TODO/FIXME comment - should be tracked as issue".to_string(),
+            });
+        }
+    }
+
+    if errors.is_empty() {
+        DocsLintResult::success()
+    } else {
+        DocsLintResult::failure(errors)
+    }
+}
