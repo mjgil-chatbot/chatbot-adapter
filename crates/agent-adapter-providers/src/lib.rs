@@ -10,6 +10,7 @@ pub mod gemini_adapter;
 pub mod healthcheck;
 pub mod hermes_adapter;
 pub mod kimi_adapter;
+pub mod mappers;
 pub use claude_adapter::ClaudeAdapter;
 pub use claw_adapter::ClawAdapter;
 pub use codex_adapter::CodexAdapter;
