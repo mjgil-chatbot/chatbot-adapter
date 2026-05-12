@@ -3,5 +3,6 @@
 pub mod contract;
 pub mod design_traceability;
 pub mod docs_lint;
+pub mod fake;
 pub use design_traceability::*;
 pub use docs_lint::*;
