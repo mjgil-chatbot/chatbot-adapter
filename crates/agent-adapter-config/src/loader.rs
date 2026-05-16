@@ -5,6 +5,7 @@
 use crate::{CwdBehavior, PromptMode, ProviderConfig, ProviderKind};
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+
 #[derive(Error, Debug)]
 pub enum ConfigError {
     #[error("Failed to read config file: {0}")]
@@ -14,12 +15,14 @@ pub enum ConfigError {
     #[error("Invalid provider config: {0}")]
     InvalidProvider(String),
 }
+
 pub struct ConfigLoader {
     config_paths: Vec<PathBuf>,
     env_overrides: bool,
     /// When Some, only load from this single path (skip discovery and defaults)
     explicit_path: Option<PathBuf>,
 }
+
 impl ConfigLoader {
     pub fn new() -> Self {
         Self {
@@ -27,26 +30,26 @@ impl ConfigLoader {
             env_overrides: true,
             explicit_path: None,
         }
-    }}
-impl ConfigLoader {
+    }
+
     pub fn add_path<P: AsRef<Path>>(mut self, path: P) -> Self {
         self.config_paths.push(path.as_ref().to_path_buf());
         self
-    }}
-impl ConfigLoader {
+    }
+
     /// Set an explicit config file path. When set, only this path is loaded
     /// and all discovery/defaults are skipped.
     pub fn with_explicit_path<P: AsRef<Path>>(mut self, path: P) -> Self {
         self.explicit_path = Some(path.as_ref().to_path_buf());
         self
-    }}
-impl ConfigLoader {
+    }
+
     /// Enable environment variable overrides (enabled by default).
     pub fn with_env_overrides(mut self, enabled: bool) -> Self {
         self.env_overrides = enabled;
         self
-    }}
-impl ConfigLoader {
+    }
+
     /// Get the default config directory path.
     pub fn default_config_dir() -> PathBuf {
         if let Ok(xdg) = std::env::var("XDG_CONFIG_HOME") {
@@ -56,13 +59,13 @@ impl ConfigLoader {
         } else {
             PathBuf::from(".agent-adapter")
         }
-    }}
-impl ConfigLoader {
+    }
+
     /// Get the default config file path.
     pub fn default_config_path() -> PathBuf {
         Self::default_config_dir().join("config.toml")
-    }}
-impl ConfigLoader {
+    }
+
     /// Get project-level config paths to check.
     pub fn project_config_paths() -> Vec<PathBuf> {
         let mut paths = Vec::new();
@@ -81,8 +84,8 @@ impl ConfigLoader {
             paths.push(std::env::current_dir().unwrap().join("agent-adapter.toml"));
         }
         paths
-    }}
-impl ConfigLoader {
+    }
+
     pub fn load(&self) -> Result<Vec<ProviderConfig>, ConfigError> {
         let mut configs = Vec::new();
 
@@ -146,8 +149,8 @@ impl ConfigLoader {
         }
 
         Ok(configs)
-    }}
-impl ConfigLoader {
+    }
+
     /// Apply environment variable overrides.
     ///
     /// Environment variables for provider overrides:
@@ -200,8 +203,8 @@ impl ConfigLoader {
                 }
             }
         }
-    }}
-impl ConfigLoader {
+    }
+
     /// Built-in provider defaults.
     fn built_in_defaults() -> Vec<ProviderConfig> {
         vec![
@@ -355,12 +358,15 @@ impl ConfigLoader {
                 schema_version: None,
             },
         ]
-    }}
+    }
+}
+
 impl Default for ConfigLoader {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[derive(serde::Deserialize)]
 struct ProviderConfigToml {
     name: String,
@@ -384,6 +390,7 @@ struct ProviderConfigToml {
     #[serde(default)]
     schema_version: Option<i32>,
 }
+
 fn parse_prompt_mode(s: &str) -> PromptMode {
     match s {
         "arg" => PromptMode::Arg,
@@ -391,6 +398,7 @@ fn parse_prompt_mode(s: &str) -> PromptMode {
         _ => PromptMode::Stdin,
     }
 }
+
 fn parse_cwd_behavior(s: &str) -> CwdBehavior {
     match s {
         "create_temp" => CwdBehavior::CreateTemp,
@@ -398,6 +406,7 @@ fn parse_cwd_behavior(s: &str) -> CwdBehavior {
         _ => CwdBehavior::UseProvided,
     }
 }
+
 impl TryFrom<toml::Value> for ProviderConfig {
     type Error = String;
 
@@ -440,3 +449,6 @@ impl TryFrom<toml::Value> for ProviderConfig {
         })
     }
 }
+
+#[cfg(test)]
+mod tests;
