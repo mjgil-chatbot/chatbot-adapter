@@ -1,20 +1,24 @@
 //! Event mappers for provider-specific output formats.
 
 mod plain_text;
+
 use agent_adapter_core::{AdapterResult, AgentEvent, FileOperation, LogLevel, Role};
 use std::path::PathBuf;
+
 pub use plain_text::PlainTextMapper;
+
 /// Claude-specific event mapper.
 pub struct ClaudeMapper {
     final_text: String,
 }
+
 impl ClaudeMapper {
     pub fn new() -> Self {
         Self {
             final_text: String::new(),
         }
-    }}
-impl ClaudeMapper {
+    }
+
     pub fn map_line(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         let value = match serde_json::from_str::<serde_json::Value>(line) {
             Ok(v) => v,
@@ -159,15 +163,15 @@ impl ClaudeMapper {
                 })]
             }
         }
-    }}
-impl ClaudeMapper {
+    }
+
     pub fn map_stderr(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         vec![Ok(AgentEvent::Log {
             level: LogLevel::Warn,
             message: line.to_string(),
         })]
-    }}
-impl ClaudeMapper {
+    }
+
     pub fn finish(self) -> Vec<AdapterResult<AgentEvent>> {
         if self.final_text.is_empty() {
             vec![]
@@ -177,32 +181,36 @@ impl ClaudeMapper {
                 external_session: None,
             })]
         }
-    }}
-impl ClaudeMapper {
+    }
+
     fn log(&self, message: &str) -> AdapterResult<AgentEvent> {
         Ok(AgentEvent::Log {
             level: LogLevel::Debug,
             message: message.to_string(),
         })
-    }}
+    }
+}
+
 impl Default for ClaudeMapper {
     fn default() -> Self {
         Self::new()
     }
 }
+
 /// Generic JSONL mapper for providers following standard JSONL output.
 pub struct JsonlMapper {
     final_text: String,
     provider: String,
 }
+
 impl JsonlMapper {
     pub fn new(provider: impl Into<String>) -> Self {
         Self {
             final_text: String::new(),
             provider: provider.into(),
         }
-    }}
-impl JsonlMapper {
+    }
+
     pub fn map_line(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         let value = match serde_json::from_str::<serde_json::Value>(line) {
             Ok(v) => v,
@@ -308,8 +316,8 @@ impl JsonlMapper {
                 })]
             }
         }
-    }}
-impl JsonlMapper {
+    }
+
     pub fn finish(self) -> Vec<AdapterResult<AgentEvent>> {
         if self.final_text.is_empty() {
             vec![]
@@ -319,25 +327,28 @@ impl JsonlMapper {
                 external_session: None,
             })]
         }
-    }}
-impl JsonlMapper {
+    }
+
     fn log(&self, message: &str) -> AdapterResult<AgentEvent> {
         Ok(AgentEvent::Log {
             level: LogLevel::Debug,
             message: message.to_string(),
         })
-    }}
+    }
+}
+
 /// Codex event mapper for OpenAI Codex JSONL output.
 pub struct CodexMapper {
     final_text: String,
 }
+
 impl CodexMapper {
     pub fn new() -> Self {
         Self {
             final_text: String::new(),
         }
-    }}
-impl CodexMapper {
+    }
+
     pub fn map_line(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         let value = match serde_json::from_str::<serde_json::Value>(line) {
             Ok(v) => v,
@@ -428,15 +439,15 @@ impl CodexMapper {
                 })]
             }
         }
-    }}
-impl CodexMapper {
+    }
+
     pub fn map_stderr(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         vec![Ok(AgentEvent::Log {
             level: LogLevel::Warn,
             message: line.to_string(),
         })]
-    }}
-impl CodexMapper {
+    }
+
     pub fn finish(self) -> Vec<AdapterResult<AgentEvent>> {
         if self.final_text.is_empty() {
             vec![]
@@ -446,30 +457,34 @@ impl CodexMapper {
                 external_session: None,
             })]
         }
-    }}
-impl CodexMapper {
+    }
+
     fn log(&self, message: &str) -> AdapterResult<AgentEvent> {
         Ok(AgentEvent::Log {
             level: LogLevel::Debug,
             message: message.to_string(),
         })
-    }}
+    }
+}
+
 impl Default for CodexMapper {
     fn default() -> Self {
         Self::new()
     }
 }
+
 /// Hermes event mapper for Hermes ACP JSONL output.
 pub struct HermesMapper {
     final_text: String,
 }
+
 impl HermesMapper {
     pub fn new() -> Self {
         Self {
             final_text: String::new(),
         }
-    }}
-impl HermesMapper {
+    }
+
     pub fn map_line(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         let value = match serde_json::from_str::<serde_json::Value>(line) {
             Ok(v) => v,
@@ -577,15 +592,15 @@ impl HermesMapper {
                 })]
             }
         }
-    }}
-impl HermesMapper {
+    }
+
     pub fn map_stderr(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         vec![Ok(AgentEvent::Log {
             level: LogLevel::Warn,
             message: line.to_string(),
         })]
-    }}
-impl HermesMapper {
+    }
+
     pub fn finish(self) -> Vec<AdapterResult<AgentEvent>> {
         if self.final_text.is_empty() {
             vec![]
@@ -595,30 +610,34 @@ impl HermesMapper {
                 external_session: None,
             })]
         }
-    }}
-impl HermesMapper {
+    }
+
     fn log(&self, message: &str) -> AdapterResult<AgentEvent> {
         Ok(AgentEvent::Log {
             level: LogLevel::Debug,
             message: message.to_string(),
         })
-    }}
+    }
+}
+
 impl Default for HermesMapper {
     fn default() -> Self {
         Self::new()
     }
 }
+
 /// Claw event mapper for Claw custom JSONL output.
 pub struct ClawMapper {
     final_text: String,
 }
+
 impl ClawMapper {
     pub fn new() -> Self {
         Self {
             final_text: String::new(),
         }
-    }}
-impl ClawMapper {
+    }
+
     pub fn map_line(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         let value = match serde_json::from_str::<serde_json::Value>(line) {
             Ok(v) => v,
@@ -712,15 +731,15 @@ impl ClawMapper {
                 })]
             }
         }
-    }}
-impl ClawMapper {
+    }
+
     pub fn map_stderr(&mut self, line: &str) -> Vec<AdapterResult<AgentEvent>> {
         vec![Ok(AgentEvent::Log {
             level: LogLevel::Warn,
             message: line.to_string(),
         })]
-    }}
-impl ClawMapper {
+    }
+
     pub fn finish(self) -> Vec<AdapterResult<AgentEvent>> {
         if self.final_text.is_empty() {
             vec![]
@@ -730,16 +749,21 @@ impl ClawMapper {
                 external_session: None,
             })]
         }
-    }}
-impl ClawMapper {
+    }
+
     fn log(&self, message: &str) -> AdapterResult<AgentEvent> {
         Ok(AgentEvent::Log {
             level: LogLevel::Debug,
             message: message.to_string(),
         })
-    }}
+    }
+}
+
 impl Default for ClawMapper {
     fn default() -> Self {
         Self::new()
     }
 }
+
+#[cfg(test)]
+mod tests;
