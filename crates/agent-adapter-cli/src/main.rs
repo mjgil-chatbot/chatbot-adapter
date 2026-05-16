@@ -2,18 +2,18 @@
 
 use clap::Parser;
 use std::path::PathBuf;
-use agent_adapter_core::AgentEvent;
-use agent_adapter_core::ApprovalPolicy;
-use agent_adapter_core::ChatRequest;
-use agent_adapter_core::EventStream;
-use agent_adapter_core::ExternalSessionRef;
-use agent_adapter_core::ProviderId;
-use agent_adapter_core::ResumeMode;
-use agent_adapter_core::Role;
+
+use agent_adapter_core::{
+    AgentEvent, ApprovalPolicy, ChatRequest, EventStream, ExternalSessionRef, ProviderId,
+    ResumeMode, Role, DANGEROUS_DEFAULT_ACTIVE, SAFE_MODE_ACTIVE,
+};
+
 mod acceptance;
 mod doctor;
 mod health;
 mod providers;
+mod run;
+
 #[derive(Parser, Debug)]
 #[command(name = "agent-adapter")]
 #[command(version = "0.1.0")]
@@ -22,6 +22,7 @@ struct Args {
     #[command(subcommand)]
     command: Command,
 }
+
 #[derive(Parser, Debug)]
 pub(crate) enum Command {
     Run(Box<RunArgs>),
@@ -31,6 +32,7 @@ pub(crate) enum Command {
     /// Run repo-level acceptance validation against the workspace.
     Acceptance(acceptance::AcceptanceArgs),
 }
+
 #[derive(Parser, Debug)]
 pub(crate) struct RunArgs {
     #[arg(long, help = "Provider to use (codex, claude, gemini, etc.)")]
@@ -82,6 +84,7 @@ pub(crate) struct RunArgs {
     #[arg(long, help = "Session ID to resume")]
     session_id: Option<String>,
 }
+
 #[derive(Parser, Debug)]
 pub(crate) struct HealthcheckArgs {
     #[arg(long, help = "Provider to check")]
@@ -90,16 +93,49 @@ pub(crate) struct HealthcheckArgs {
     #[arg(long, help = "Output as JSON")]
     json: bool,
 }
+
 #[derive(Parser, Debug)]
 pub(crate) struct DoctorArgs {
     #[arg(long, help = "Output JSON")]
     json: bool,
 }
+
 #[derive(Parser, Debug)]
 pub(crate) struct ProvidersArgs {
     #[arg(long, help = "Output as JSON")]
     json: bool,
 }
+
+fn main() {
+    // Initialize tracing
+    tracing_subscriber::fmt::init();
+
+    let args = Args::parse();
+
+    let exit_code = match args.command {
+        Command::Run(run_args) => run::run_command(*run_args),
+        Command::Healthcheck(hc_args) => health::healthcheck_command(hc_args),
+        Command::Providers(providers_args) => providers::providers_command(providers_args),
+        Command::Doctor(doctor_args) => doctor::doctor_command(doctor_args),
+        Command::Acceptance(acceptance_args) => acceptance::acceptance_command(acceptance_args),
+    };
+
+    let code = match exit_code {
+        Ok(()) => 0,
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            if let Some(cli_err) = e.downcast_ref::<CliExitError>() {
+                cli_err.exit_code
+            } else if let Some(adapter_err) = e.downcast_ref::<agent_adapter_core::AdapterError>() {
+                adapter_err.exit_code()
+            } else {
+                1
+            }
+        }
+    };
+    std::process::exit(code);
+}
+
 /// Parse provider string into ProviderId
 pub fn parse_provider(s: &str) -> ProviderId {
     match s.to_lowercase().as_str() {
@@ -115,6 +151,7 @@ pub fn parse_provider(s: &str) -> ProviderId {
         other => ProviderId::Custom(other.to_string()),
     }
 }
+
 /// Create a ChatRequest from run arguments
 pub(crate) fn create_request(args: &RunArgs) -> anyhow::Result<ChatRequest> {
     let provider = parse_provider(&args.provider);
@@ -155,24 +192,30 @@ pub(crate) fn create_request(args: &RunArgs) -> anyhow::Result<ChatRequest> {
 
     Ok(request)
 }
+
 #[derive(Debug)]
 struct CliExitError {
     exit_code: i32,
     message: String,
 }
+
 impl CliExitError {
     fn new(exit_code: i32, message: impl Into<String>) -> Self {
         Self {
             exit_code,
             message: message.into(),
         }
-    }}
+    }
+}
+
 impl std::fmt::Display for CliExitError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.write_str(&self.message)
     }
 }
+
 impl std::error::Error for CliExitError {}
+
 fn is_generic_run_failed_message(message: &str) -> bool {
     let trimmed = message.trim();
     trimmed.is_empty()
@@ -180,6 +223,7 @@ fn is_generic_run_failed_message(message: &str) -> bool {
         || trimmed.contains(" exited with code ")
         || trimmed.ends_with(" failed")
 }
+
 fn terminal_failure_message(
     run_failed_message: &str,
     assistant_text: &str,
@@ -197,6 +241,7 @@ fn terminal_failure_message(
 
     format!("Provider exited with code {exit_code}")
 }
+
 /// Print events from a stream and track terminal state.
 /// Returns Ok(()) if run completed successfully, Err with exit code otherwise.
 pub async fn print_events(stream: EventStream) -> anyhow::Result<()> {
@@ -236,4 +281,119 @@ pub async fn print_events(stream: EventStream) -> anyhow::Result<()> {
 
     Err(CliExitError::new(1, "Stream ended without terminal event").into())
 }
-fn main() {}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use agent_adapter_core::WorkspaceRef;
+    use uuid::Uuid;
+
+    #[test]
+    fn test_parse_provider() {
+        assert_eq!(parse_provider("codex"), ProviderId::Codex);
+        assert_eq!(parse_provider("CLAUDE"), ProviderId::Claude);
+        assert_eq!(parse_provider("MINIMAX"), ProviderId::MiniMax);
+        assert_eq!(
+            parse_provider("custom-provider"),
+            ProviderId::Custom("custom-provider".to_string())
+        );
+    }
+
+    #[test]
+    fn test_approval_policy_from_safe_flag() {
+        let safe_args = RunArgs {
+            provider: "claude".to_string(),
+            safe: true,
+            prompt: "hello".to_string(),
+            system_prompt: None,
+            cwd: ".".to_string(),
+            timeout: None,
+            model: None,
+            config: None,
+            no_env: false,
+            sandbox_dirs: Vec::new(),
+            json: false,
+            resume: false,
+            session_id: None,
+        };
+        let policy = if safe_args.safe {
+            ApprovalPolicy::Safe
+        } else {
+            ApprovalPolicy::DangerousDefault
+        };
+        assert!(policy.is_safe());
+
+        let unsafe_args = RunArgs {
+            safe: false,
+            ..safe_args
+        };
+        let policy = if unsafe_args.safe {
+            ApprovalPolicy::Safe
+        } else {
+            ApprovalPolicy::DangerousDefault
+        };
+        assert!(policy.is_dangerous());
+    }
+
+    #[test]
+    fn test_dangerous_default_mode_string() {
+        assert_eq!(
+            ApprovalPolicy::DangerousDefault.as_mode_string(),
+            DANGEROUS_DEFAULT_ACTIVE
+        );
+        assert_eq!(ApprovalPolicy::Safe.as_mode_string(), SAFE_MODE_ACTIVE);
+    }
+
+    #[test]
+    fn test_terminal_failure_message_prefers_assistant_text_for_generic_failure() {
+        let message = terminal_failure_message(
+            "claude exited with code Some(1)",
+            "Your organization does not have access to Claude.",
+            1,
+        );
+        assert_eq!(message, "Your organization does not have access to Claude.");
+    }
+
+    #[test]
+    fn test_terminal_failure_message_preserves_specific_failure_message() {
+        let message = terminal_failure_message(
+            "provider rejected request: invalid token",
+            "ignored assistant text",
+            3,
+        );
+        assert_eq!(message, "provider rejected request: invalid token");
+    }
+
+    #[tokio::test]
+    async fn test_print_events_returns_cli_exit_error_with_terminal_message() {
+        let stream: EventStream = Box::pin(futures_util::stream::iter(vec![
+            Ok(AgentEvent::RunStarted {
+                run_id: Uuid::new_v4(),
+                provider: ProviderId::MiniMax,
+                external_session: None,
+                approval_policy: DANGEROUS_DEFAULT_ACTIVE.to_string(),
+                workspace: WorkspaceRef::Direct {
+                    path: PathBuf::from("."),
+                },
+            }),
+            Ok(AgentEvent::TextDelta {
+                role: Role::Assistant,
+                text: "Your organization does not have access to Claude.".to_string(),
+            }),
+            Ok(AgentEvent::RunFailed {
+                code: Some(1),
+                message: "claude exited with code Some(1)".to_string(),
+            }),
+        ]));
+
+        let err = print_events(stream).await.expect_err("run should fail");
+        let cli_err = err
+            .downcast_ref::<CliExitError>()
+            .expect("cli exit error should be preserved");
+        assert_eq!(cli_err.exit_code, 1);
+        assert_eq!(
+            cli_err.message,
+            "Your organization does not have access to Claude."
+        );
+    }
+}
