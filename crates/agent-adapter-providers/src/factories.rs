@@ -1,33 +1,43 @@
 //! Factory implementations for built-in providers.
 
 use std::path::PathBuf;
+
 use agent_adapter_config::{CwdBehavior, PromptMode, ProviderConfig, ProviderKind};
 use agent_adapter_core::{
     AdapterCapabilities, AdapterHealth, AdapterResult, AgentAdapter, ProviderId,
 };
 use async_trait::async_trait;
+
 use crate::traits::{PolicySupport, ProviderFactory, TransportKind};
 use crate::{
     ClaudeAdapter, ClawAdapter, CodexAdapter, ForgeAdapter, GeminiAdapter, HermesAdapter,
     KimiAdapter, OpenCodeAdapter,
 };
+
 /// Factory for Claude provider.
 pub struct ClaudeFactory;
+
 impl ClaudeFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 /// Factory for MiniMax via the Claude-compatible transport.
 pub struct MiniMaxFactory;
+
 impl MiniMaxFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for MiniMaxFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for MiniMaxFactory {
     fn id(&self) -> &str {
@@ -81,11 +91,13 @@ impl ProviderFactory for MiniMaxFactory {
         )))
     }
 }
+
 impl Default for ClaudeFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for ClaudeFactory {
     fn id(&self) -> &str {
@@ -136,17 +148,22 @@ impl ProviderFactory for ClaudeFactory {
         Ok(Box::new(ClaudeAdapter::new(config)))
     }
 }
+
 /// Factory for Codex provider.
 pub struct CodexFactory;
+
 impl CodexFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for CodexFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for CodexFactory {
     fn id(&self) -> &str {
@@ -197,17 +214,22 @@ impl ProviderFactory for CodexFactory {
         Ok(Box::new(CodexAdapter::new(config)))
     }
 }
+
 /// Factory for Gemini provider.
 pub struct GeminiFactory;
+
 impl GeminiFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for GeminiFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for GeminiFactory {
     fn id(&self) -> &str {
@@ -259,17 +281,22 @@ impl ProviderFactory for GeminiFactory {
         Ok(Box::new(GeminiAdapter::new(config)))
     }
 }
+
 /// Factory for Kimi provider.
 pub struct KimiFactory;
+
 impl KimiFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for KimiFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for KimiFactory {
     fn id(&self) -> &str {
@@ -326,17 +353,22 @@ impl ProviderFactory for KimiFactory {
         Ok(Box::new(KimiAdapter::new(config)))
     }
 }
+
 /// Factory for OpenCode provider.
 pub struct OpenCodeFactory;
+
 impl OpenCodeFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for OpenCodeFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for OpenCodeFactory {
     fn id(&self) -> &str {
@@ -391,17 +423,22 @@ impl ProviderFactory for OpenCodeFactory {
         Ok(Box::new(OpenCodeAdapter::new(config)))
     }
 }
+
 /// Factory for Hermes provider.
 pub struct HermesFactory;
+
 impl HermesFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for HermesFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for HermesFactory {
     fn id(&self) -> &str {
@@ -453,17 +490,22 @@ impl ProviderFactory for HermesFactory {
         Ok(Box::new(HermesAdapter::new(config)))
     }
 }
+
 /// Factory for Forge provider.
 pub struct ForgeFactory;
+
 impl ForgeFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for ForgeFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for ForgeFactory {
     fn id(&self) -> &str {
@@ -519,17 +561,22 @@ impl ProviderFactory for ForgeFactory {
         Ok(Box::new(ForgeAdapter::new(config)))
     }
 }
+
 /// Factory for Claw provider.
 pub struct ClawFactory;
+
 impl ClawFactory {
     pub fn new() -> Self {
         Self
-    }}
+    }
+}
+
 impl Default for ClawFactory {
     fn default() -> Self {
         Self::new()
     }
 }
+
 #[async_trait]
 impl ProviderFactory for ClawFactory {
     fn id(&self) -> &str {
@@ -584,3 +631,6 @@ impl ProviderFactory for ClawFactory {
         Ok(Box::new(ClawAdapter::new(config)))
     }
 }
+
+#[cfg(test)]
+mod tests;
