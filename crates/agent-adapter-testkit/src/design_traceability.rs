@@ -8,36 +8,43 @@
 //! Task 7: Strengthened to verify symbols exist within files, not just file existence.
 
 mod doc_checks;
+
 use std::path::Path;
+
 /// Result of a design traceability check.
 #[derive(Debug, Clone)]
 pub struct TraceabilityResult {
     pub passed: bool,
     pub errors: Vec<TraceabilityError>,
 }
+
 impl TraceabilityResult {
     pub fn success() -> Self {
         Self {
             passed: true,
             errors: Vec::new(),
         }
-    }}
-impl TraceabilityResult {
+    }
+
     pub fn failure(errors: Vec<TraceabilityError>) -> Self {
         Self {
             passed: false,
             errors,
         }
-    }}
+    }
+}
+
 /// A traceability error.
 #[derive(Debug, Clone)]
 pub struct TraceabilityError {
     pub claim: String,
     pub error: String,
 }
+
 /// Symbol-level evidence requirement for a claim.
 /// Each entry is (keyword, file_path, required_symbols_in_file).
 struct SymbolRequirement(&'static str, &'static str, Vec<&'static str>);
+
 /// Validate that design.md claims have implementation evidence.
 pub fn validate_design_traceability(design_md: &Path, root_dir: &Path) -> TraceabilityResult {
     let mut errors = Vec::new();
@@ -110,6 +117,7 @@ pub fn validate_design_traceability(design_md: &Path, root_dir: &Path) -> Tracea
         TraceabilityResult::failure(errors)
     }
 }
+
 /// Check core event model claims with symbol-level evidence.
 fn check_core_event_model_with_symbols(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -199,6 +207,7 @@ fn check_core_event_model_with_symbols(content: &str, root_dir: &Path) -> Vec<Tr
 
     errors
 }
+
 /// Check transport claims with symbol evidence.
 fn check_transport_claims_with_symbols(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -279,6 +288,7 @@ fn check_transport_claims_with_symbols(content: &str, root_dir: &Path) -> Vec<Tr
 
     errors
 }
+
 /// Check provider claims with symbol evidence.
 fn check_provider_claims_with_symbols(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -385,6 +395,7 @@ fn check_provider_claims_with_symbols(content: &str, root_dir: &Path) -> Vec<Tra
 
     errors
 }
+
 /// Check workspace claims (WorkspaceRef in types.rs).
 fn check_workspace_ref_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -409,6 +420,7 @@ fn check_workspace_ref_claims(content: &str, root_dir: &Path) -> Vec<Traceabilit
 
     errors
 }
+
 /// Check lifecycle event ownership claims.
 fn check_lifecycle_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -430,6 +442,7 @@ fn check_lifecycle_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityErr
 
     errors
 }
+
 /// Check router claims.
 fn check_router_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -462,6 +475,7 @@ fn check_router_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError>
 
     errors
 }
+
 /// Check workspace path claims (always checked).
 /// Note: Only validates that referenced workspace paths exist; does NOT enforce
 /// a specific canonical location since workspace helpers may legitimately live
@@ -502,6 +516,7 @@ fn check_workspace_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityErr
 
     errors
 }
+
 /// Check real provider gate claims (always checked, not conditional on router).
 fn check_real_provider_gate_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -521,6 +536,7 @@ fn check_real_provider_gate_claims(content: &str, root_dir: &Path) -> Vec<Tracea
 
     errors
 }
+
 /// Detect stale task lists (tasks-8*.md, tasks-9.md) remaining in root docs instead of archived.
 /// Acceptance requires these to be moved to docs/archive/.
 /// Check config schema claims.
@@ -552,6 +568,7 @@ fn check_config_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError>
 
     errors
 }
+
 /// Check security claims.
 fn check_security_claims(content: &str, _root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -580,6 +597,7 @@ fn check_security_claims(content: &str, _root_dir: &Path) -> Vec<TraceabilityErr
 
     errors
 }
+
 /// Check health check claims.
 fn check_health_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError> {
     let mut errors = Vec::new();
@@ -596,6 +614,7 @@ fn check_health_claims(content: &str, root_dir: &Path) -> Vec<TraceabilityError>
 
     errors
 }
+
 /// Validate a specific design claim has evidence.
 pub fn validate_claim(claim: &str, root_dir: &Path) -> TraceabilityResult {
     let claim_lower = claim.to_lowercase();
@@ -733,3 +752,6 @@ pub fn validate_claim(claim: &str, root_dir: &Path) -> TraceabilityResult {
 
     TraceabilityResult::success()
 }
+
+#[cfg(test)]
+mod tests;
