@@ -8,26 +8,30 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+
 /// Result of a docs lint check.
 #[derive(Debug, Clone)]
 pub struct DocsLintResult {
     pub passed: bool,
     pub errors: Vec<DocsLintError>,
 }
+
 impl DocsLintResult {
     pub fn success() -> Self {
         Self {
             passed: true,
             errors: Vec::new(),
         }
-    }}
-impl DocsLintResult {
+    }
+
     pub fn failure(errors: Vec<DocsLintError>) -> Self {
         Self {
             passed: false,
             errors,
         }
-    }}
+    }
+}
+
 /// A docs lint error.
 #[derive(Debug, Clone)]
 pub struct DocsLintError {
@@ -35,6 +39,7 @@ pub struct DocsLintError {
     pub line: Option<usize>,
     pub error: String,
 }
+
 /// Lint the docs directory.
 pub fn lint_docs(docs_dir: &Path) -> DocsLintResult {
     let mut errors = Vec::new();
@@ -57,6 +62,7 @@ pub fn lint_docs(docs_dir: &Path) -> DocsLintResult {
         DocsLintResult::failure(errors)
     }
 }
+
 /// Check that all internal links in docs point to existing files.
 fn check_doc_links(docs_dir: &Path) -> Vec<DocsLintError> {
     let mut errors = Vec::new();
@@ -113,6 +119,7 @@ fn check_doc_links(docs_dir: &Path) -> Vec<DocsLintError> {
 
     errors
 }
+
 /// Check that all provider docs exist and are linked.
 fn check_provider_links(docs_dir: &Path) -> Vec<DocsLintError> {
     let mut errors = Vec::new();
@@ -152,6 +159,7 @@ fn check_provider_links(docs_dir: &Path) -> Vec<DocsLintError> {
 
     errors
 }
+
 /// Reject internal task ledgers and stale task artifacts from the public docs tree.
 fn check_task_completeness(docs_dir: &Path) -> Vec<DocsLintError> {
     let mut errors = Vec::new();
@@ -269,6 +277,7 @@ fn check_task_completeness(docs_dir: &Path) -> Vec<DocsLintError> {
 
     errors
 }
+
 /// Check that docs don't contain contradictory safety claims.
 fn check_safety_consistency(docs_dir: &Path) -> Vec<DocsLintError> {
     let mut errors = Vec::new();
@@ -320,6 +329,7 @@ fn check_safety_consistency(docs_dir: &Path) -> Vec<DocsLintError> {
 
     errors
 }
+
 /// Collect all markdown files in a directory.
 fn collect_markdown_files(dir: &Path) -> Vec<PathBuf> {
     let mut files = Vec::new();
@@ -339,6 +349,7 @@ fn collect_markdown_files(dir: &Path) -> Vec<PathBuf> {
 
     files
 }
+
 /// Lint result for a single file.
 pub fn lint_file(path: &Path) -> DocsLintResult {
     let mut errors = Vec::new();
@@ -380,3 +391,6 @@ pub fn lint_file(path: &Path) -> DocsLintResult {
         DocsLintResult::failure(errors)
     }
 }
+
+#[cfg(test)]
+mod tests;
