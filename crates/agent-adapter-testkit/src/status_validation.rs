@@ -21,39 +21,46 @@
 //! - `agent-adapter-config`: no `docs/config.md` required; schema in `docs/design.md` and `docs/cli.md`
 
 use std::path::Path;
+
 /// Result of a status validation check.
 #[derive(Debug, Clone)]
 pub struct StatusValidationResult {
     pub passed: bool,
     pub errors: Vec<StatusValidationError>,
 }
+
 impl StatusValidationResult {
     pub fn success() -> Self {
         Self {
             passed: true,
             errors: Vec::new(),
         }
-    }}
-impl StatusValidationResult {
+    }
+
     pub fn failure(errors: Vec<StatusValidationError>) -> Self {
         Self {
             passed: false,
             errors,
         }
-    }}
+    }
+}
+
 /// A status validation error.
 #[derive(Debug, Clone)]
 pub struct StatusValidationError {
     pub crate_name: String,
     pub error: String,
 }
+
 impl StatusValidationError {
     pub fn new(crate_name: &str, error: impl Into<String>) -> Self {
         Self {
             crate_name: crate_name.to_string(),
             error: error.into(),
         }
-    }}
+    }
+}
+
 /// Known missing-doc exceptions: crates that are "Complete" without specific doc files.
 /// Key: crate name, Value: reason why no doc file is required.
 const KNOWN_MISSING_DOC_EXCEPTIONS: &[(&str, &str)] = &[
@@ -66,6 +73,7 @@ const KNOWN_MISSING_DOC_EXCEPTIONS: &[(&str, &str)] = &[
         "no docs/config.md; schema in docs/design.md and docs/cli.md",
     ),
 ];
+
 /// Check if a crate has a known missing-doc exception.
 fn has_missing_doc_exception(crate_name: &str) -> Option<&'static str> {
     KNOWN_MISSING_DOC_EXCEPTIONS
@@ -73,6 +81,7 @@ fn has_missing_doc_exception(crate_name: &str) -> Option<&'static str> {
         .find(|(name, _)| *name == crate_name)
         .map(|(_, reason)| *reason)
 }
+
 /// Check if a crate has actual test evidence (not just crate existence).
 /// Returns true if an actual tests/ directory, src/tests/ directory, or
 /// any source file containing #[test] or #[cfg(test)] modules exists.
@@ -104,6 +113,7 @@ fn crate_has_tests(crate_path: &Path) -> bool {
     }
     false
 }
+
 /// Validate the status claims in status.md against actual implementation.
 pub fn validate_status(
     status_md: &Path,
@@ -221,6 +231,7 @@ pub fn validate_status(
         StatusValidationResult::failure(errors)
     }
 }
+
 /// Validate router method claims in the full status.md content.
 /// Checks that any cited router methods actually exist in the implementation.
 fn validate_router_claims_in_content(status_content: &str, crates_dir: &Path) -> Vec<String> {
@@ -256,6 +267,7 @@ fn validate_router_claims_in_content(status_content: &str, crates_dir: &Path) ->
 
     errors
 }
+
 /// Validate workspace helper path claims in status.md content.
 fn validate_workspace_helper_claims_in_content(status_content: &str) -> Vec<String> {
     let mut errors = Vec::new();
@@ -272,6 +284,7 @@ fn validate_workspace_helper_claims_in_content(status_content: &str) -> Vec<Stri
 
     errors
 }
+
 /// Validate that config key claims match the actual schema.
 fn validate_config_key_claims(status_content: &str) -> Vec<String> {
     let mut errors = Vec::new();
@@ -288,6 +301,7 @@ fn validate_config_key_claims(status_content: &str) -> Vec<String> {
 
     errors
 }
+
 /// Validate that gate claims match actual implementation.
 fn validate_gate_claims(status_content: &str) -> Vec<String> {
     let mut errors = Vec::new();
@@ -302,6 +316,7 @@ fn validate_gate_claims(status_content: &str) -> Vec<String> {
 
     errors
 }
+
 #[allow(dead_code)]
 /// A parsed crate table row from status.md.
 struct CrateRow {
@@ -311,6 +326,7 @@ struct CrateRow {
     tests: String,
     documentation: String,
 }
+
 /// Extract specific source file paths from implementation evidence.
 /// Parses evidence like "src/lib.rs, src/request.rs (ChatRequest)" into actual paths.
 fn extract_impl_paths(evidence: &str) -> Vec<String> {
@@ -334,6 +350,7 @@ fn extract_impl_paths(evidence: &str) -> Vec<String> {
     }
     paths
 }
+
 /// Extract specific test file paths from test evidence.
 /// Parses evidence like "tests/*.rs" or "src/request.rs" (request::tests::*)" into paths.
 fn extract_test_paths(evidence: &str) -> Vec<String> {
@@ -358,6 +375,7 @@ fn extract_test_paths(evidence: &str) -> Vec<String> {
 
     paths
 }
+
 /// Verify that specific paths cited in evidence actually exist.
 /// Returns errors for missing paths.
 fn verify_evidence_paths(
@@ -390,6 +408,7 @@ fn verify_evidence_paths(
 
     errors
 }
+
 /// Map a crate name to its expected documentation file or directory name.
 fn doc_name_from_crate(crate_name: &str) -> String {
     match crate_name {
@@ -408,6 +427,7 @@ fn doc_name_from_crate(crate_name: &str) -> String {
         }
     }
 }
+
 /// Parse the crate completion table from status.md content.
 fn parse_crate_table(content: &str) -> Vec<CrateRow> {
     let mut rows = Vec::new();
@@ -462,6 +482,7 @@ fn parse_crate_table(content: &str) -> Vec<CrateRow> {
 
     rows
 }
+
 /// Validate that tasks marked complete have proper evidence.
 /// A task is considered complete only if:
 /// 1. Implementation file exists
@@ -506,6 +527,7 @@ pub fn validate_task_completeness(
         StatusValidationResult::failure(errors)
     }
 }
+
 /// Extract task number from a line like "| 20 | Complete |" or "| 20 | Complete — Finish Codex |"
 fn extract_task_number(line: &str) -> Option<u32> {
     let parts: Vec<&str> = line.split('|').collect();
@@ -516,6 +538,7 @@ fn extract_task_number(line: &str) -> Option<u32> {
         None
     }
 }
+
 /// Validate that a task has proper implementation, tests, and docs evidence.
 fn validate_task_evidence(
     task_num: u32,
@@ -589,6 +612,7 @@ fn validate_task_evidence(
 
     errors
 }
+
 /// Check that status.md does not reference stale canonical task lists.
 /// tasks-10.md is the sole canonical task list; tasks-8.md and tasks-9.md are superseded.
 fn validate_no_stale_task_list_references(status_content: &str) -> Vec<String> {
@@ -610,6 +634,7 @@ fn validate_no_stale_task_list_references(status_content: &str) -> Vec<String> {
 
     errors
 }
+
 /// Check that status.md is consistent with tasks-10.md.
 pub fn check_status_tasks_consistency(status_md: &Path, tasks_md: &Path) -> StatusValidationResult {
     let mut errors = Vec::new();
@@ -673,6 +698,7 @@ pub fn check_status_tasks_consistency(status_md: &Path, tasks_md: &Path) -> Stat
         StatusValidationResult::failure(errors)
     }
 }
+
 /// Extract task statuses from tasks-10.md content.
 fn extract_task_statuses(content: &str) -> std::collections::HashMap<u32, &str> {
     let mut statuses = std::collections::HashMap::new();
@@ -693,6 +719,7 @@ fn extract_task_statuses(content: &str) -> std::collections::HashMap<u32, &str> 
 
     statuses
 }
+
 /// Run all status validation checks.
 pub fn validate_all(root_dir: &Path) -> StatusValidationResult {
     let docs_dir = root_dir.join("docs");
@@ -718,3 +745,6 @@ pub fn validate_all(root_dir: &Path) -> StatusValidationResult {
         StatusValidationResult::failure(all_errors)
     }
 }
+
+#[cfg(test)]
+mod tests;
